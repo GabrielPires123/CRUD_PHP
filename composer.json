@@ -5,8 +5,7 @@
     "doctrine/doctrine-bundle": "^2.14",
     "doctrine/migrations": "^3.9",
     "doctrine/orm": "^3.3",
-    "ext-readline": "*",
-    "ext-mysql_xdevapi": "*"
+    "ext-readline": "*"
   },
   "autoload": {
     "psr-4": {
