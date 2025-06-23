@@ -30,21 +30,7 @@ class Pedido
      */
     public function __construct(int $num)
     {
-        if ($num != null && $num != "" && $num != " ")
-        {
-            if($num >0)
-            {
-                $this->num = $num;
-            }
-            else{
-                echo "\n--Campo Num. Pedido deve ser maior que 0\n";
-            }
-
-        }
-        else
-        {
-            echo "\n--Campo Num. Pedido é nulo ou inválido\n";
-        }
+        $this->num = $num;
     }
 
     public function getPessoa(): ?Pessoa { return $this->pessoa; }
