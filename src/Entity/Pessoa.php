@@ -32,31 +32,9 @@ class Pessoa
 
     public function __construct(string $nome, string $cpf)
     {
-        if ($nome != null || $cpf != null )
-        {
-            if ( $nome != ""  || $nome != " "){
-                $this->nome = $nome;
-            }
-            else{
-                echo ("\n--Campo nome é nulo ou inválido\n");
-            }
-            if ( $cpf != ""  && $cpf != " ")
-            {
-                if (strlen($cpf) == 11)
-                {
-                    $this->cpf = $cpf;
-                }
 
-                else
-                {
-                    echo ("\n--CPF maior ou menor que 11 digitos\n");
-                }
-            }
-        }
-        else
-        {
-            echo "\n--Campo nome e CPF são null ou inválidos\n";
-        }
+        $this->nome = $nome;
+        $this->cpf = $cpf;
         $this->pedidos = new ArrayCollection();
     }
 
@@ -86,7 +64,7 @@ class Pessoa
     {
         if ($cpf != "" && $cpf != null && $cpf != " ")
         {
-            if (strlen($cpf) == 11)
+            if (strlen($cpf) === 11)
             {
                 $this->cpf = $cpf;
             }

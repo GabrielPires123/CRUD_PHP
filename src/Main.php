@@ -31,71 +31,38 @@ function Main(): void
             {
                 switch ($menu)
                 {
-                    case 1:
-                    {
-
+                    case 1:{
                         clearStdin();
                             echo "Cadsatro \n\n";
 
-                            $conn = $entityManager->getRepository(Dados::class);
-                            $N=  null;
-                            $C=  null;
-                            $P1=  null;
-                            $P = $conn->findAll();
-                            DeeleteDados();
+                           $conn = $entityManager->getRepository(Dados::class)->findAll();
 
-                            if ($P != null) {
-                                foreach ($P as $dados)
-                                {
+                        if (!empty($conn))
+                        {
+                            recuperarDados();
 
-                                    echo "Dados recuperados: ";
-                                    echo "\nNome: {$dados->getNome()}  \n";
-                                    echo "\nCPF: {$dados->getCpf()} \n";
-                                    echo "\nNum. Pedido: {$dados->getNumPedido()}  \n";
-
-                                    if ($dados->getNome() == null)
-                                    {
-                                        echo "\nNome: ";
-                                        $N =  readline("");
-                                    }
-                                    else{
-                                        $N = $dados->getNome();
-                                    }
-
-                                    if ($dados->getCpf() == null || (strlen($dados->getCpf()) != 11))
-                                    {
-                                        echo "\nCpf: ";
-                                        $C = (string) readline("");
-                                    }
-                                    else{
-                                        $C = $dados->getNome();
-                                    }
-
-                                    if ($dados->getNumPedido() == null){
-                                        echo "\nNum. Pedido: ";
-                                        $P1 = (int) readline("");
-                                    }
-                                    else{
-                                        $P1 = $dados->getNumPedido();
-                                    }
-                                    insertPedidoCompleto($N,$C,$P1);
-                                }
-                            }
-                            else
-                            {
+                        }
+                        else
+                        {
                                 echo "Nome: ";
                                 $nomePessoa = readline();
+
                                 echo "CPF: ";
                                 $cpfPessoa = readline("");
+
                                 echo "Num. Pedido: ";
                                 $numPedido = (int) readline("");
 
-                                insertDados($nomePessoa,$cpfPessoa,$numPedido);
-                                insertPedidoCompleto($nomePessoa, $cpfPessoa, $numPedido);
 
-                            }
-
+                                if (validarDados($nomePessoa, $cpfPessoa, $numPedido) === true)
+                                {
+                                    insertPedidoCompleto($nomePessoa, $cpfPessoa, $numPedido);
+                                }
+                                else{
+                                    insertDados($nomePessoa,$cpfPessoa,$numPedido);
+                                }
                             break;
+                        }
                     }
                     case 2:
                     {
@@ -110,7 +77,7 @@ function Main(): void
                         echo "Deletar Pedido";
 
                             $idpessoa = (int) readline("\nID da pessoa: ");
-                            if($idpessoa != null && $idpessoa != "" && $idpessoa > 0)
+                            if(!empty($idpessoa))
                             {
                                 DeletePedido($idpessoa);
                                 echo "Pedido Deletado com sucesso";
@@ -126,7 +93,7 @@ function Main(): void
                         clearStdin();
                         echo "Atualizar pessoa";
                         $idPessoa = (int) readline("\nID da pessoa: ");
-                        if ($idPessoa != null && $idPessoa != "" && $idPessoa > 0)
+                        if (!empty($idPessoa))
                         {
                             upgradePessoa($idPessoa);
                             echo "Pedido Atualizado com sucesso";
@@ -145,6 +112,7 @@ function Main(): void
                     }
                     default:
                         echo "Opção inválida!";
+
                 }
             }
             catch (ORMException|TypeError|Exception $e)
@@ -196,9 +164,9 @@ function insertDados(?string $nomePessoa, ?string $cpf, ?int $numPedido):void
 
     global $entityManager;
 
-    $pessoa = new Dados($nomePessoa, $cpf,$numPedido);
+    $dados = new Dados($nomePessoa, $cpf, $numPedido);
 
-    $entityManager->persist($pessoa);
+    $entityManager->persist($dados);
     $entityManager->flush();
 
 }
@@ -240,16 +208,13 @@ function DeletePedido($idPessoa): void
      $connP = $entityManager->find(Pessoa::class,$idPessoa);
      $connD = $entityManager->find(Dados::class,$idPessoa);
 
-     if ($connP != null) {
+     if (!empty($connP) && !empty($connD))
+     {
          $entityManager->remove($connP);
-         $entityManager->flush();
-
-     }
-
-     if ($connD != null) {
          $entityManager->remove($connD);
          $entityManager->flush();
      }
+
      else{
          throw new Exception("Nenhuma pessoa encontrada\n\n");
      }
@@ -281,24 +246,89 @@ function upgradePessoa($idPessoa):void
      }
 }
 
+function validarDados(string $nome, string $cpf, int $numPedido): bool
+{
+
+    $erro = [];
+        if (empty($nome))
+        {
+            $erro[] = "\nErro: Campo nome é nulo ou inválido\n";
+
+        }
+
+        if (empty($cpf))
+        {
+            $erro[] = "\nErro: Campo CPF é nulo ou inválido\n";
+
+        }
+
+        if (empty($numPedido) || $numPedido <= 0) {
+            $erro[] = "ERRO: Campo Num. Pedido é nulo ou inválido\n";
+
+        }
+
+        if (!empty($erro)) {
+            foreach ($erro as $Erro) {
+                echo $Erro;
+            }
+            return false;
+        }
+
+    return true;
+}
+
 /**
+ * @throws OptimisticLockException
  * @throws ORMException
  */
-function DeeleteDados(): void
+
+function recuperarDados(): void
 {
     global $entityManager;
 
-    $P = $entityManager->getRepository(Dados::class)->findAll();
+    $temporarios  = $entityManager->getRepository(Dados::class)->findAll();
 
-    if ($P != null)
-    {
-        foreach ($P as $dados)
+        foreach ($temporarios as $dados)
         {
-            $id = $dados->getId();
-            DeletePedido($id);
-        }
-    }
+            echo "\n--- Dados recuperados ---";
+            echo "\nNome: {$dados->getNome()}";
+            echo "\nCPF: {$dados->getCpf()}";
+            echo "\nNum. Pedido: {$dados->getNumPedido()}";
 
+            echo "\n\nInserir dados:\n";
+            if (!empty($dados->getNome()))
+            {
+                $nome = $dados->getNome();
+            }
+            else{
+                echo "\nNome: ";
+                $nome = readline("");
+            }
+            if (!empty($dados->getCpf()) ){
+                $cpf = $dados->getCpf();
+            }
+            else{
+                echo "\nCPF: ";
+                $cpf = readline("");
+            }
+            if (!empty($dados->getNumPedido())){
+                $num = $dados->getNumPedido();
+            }
+            else{
+                echo "\nNum Pedido: ";
+                $num = readline("");
+            }
+
+            if (validarDados($nome, $cpf, $num)) {
+                insertPedidoCompleto($nome, $cpf, $num);
+            } else {
+                echo "\nErro: dados inválidos\n";
+                insertDados($nome, $cpf, $num);
+            }
+
+            $entityManager->remove($dados);
+            $entityManager->flush();
+        }
 }
 
  Main();
